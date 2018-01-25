@@ -19,7 +19,7 @@
         <clobbers target="DocumentHandler" />
     </js-module>
   
-    <dependency id="cordova-plugin-file" version="^4.0.0" />
+    <dependency id="cordova-plugin-file" version=">=4.0.0" />
 
     <platform name="android">
 
