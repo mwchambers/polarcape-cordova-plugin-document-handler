@@ -14,7 +14,9 @@
         
         NSString* urlStr = dict[@"url"];
         NSString* filename = dict[@"fileName"];
-        NSURL* url = [NSURL URLWithString:urlStr];
+        NSString* escaped =  [ urlStr stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+        NSURL* url = [NSURL URLWithString:escaped];
+
         NSData* dat = [NSData dataWithContentsOfURL:url];
         if (dat == nil) {
           CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsInt:2];
