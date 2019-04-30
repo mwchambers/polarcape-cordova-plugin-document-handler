@@ -127,7 +127,21 @@ public class DocumentHandler extends CordovaPlugin {
     private static String getMimeType(String url) {
         String mimeType = null;
 
-        String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+        /*
+         * MimeTypeMap.getFileExtensionFromUrl can return an empty string when there are
+         * spaces in the 'url'
+         * see comments here: https://stackoverflow.com/questions/14320527/android-should-i-use-mimetypemap-getfileextensionfromurl-bugs/14321470
+         */
+        //String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+
+        String extension = null;
+
+        int lastDot = url.lastIndexOf('.');
+
+        if(lastDot != -1) {
+            extension = url.substring(lastDot+1);
+        }
+
         if (extension != null) {
             MimeTypeMap mime = MimeTypeMap.getSingleton();
             mimeType = mime.getMimeTypeFromExtension(extension);
