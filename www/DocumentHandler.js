@@ -7,8 +7,12 @@ var viewDocument = function (
             failureHandler,
             "DocumentHandler",
             "HandleDocumentWithURL",
-            [{"url": url, "fileName":fileName}]);
-};
+            [{
+                "url": url,
+                "fileName": fileName,
+                "type": type || ""
+            }]);
+    };
 
 var b64toBlob = function (b64Data, contentType, sliceSize) {
     contentType = contentType || '';
@@ -65,13 +69,13 @@ var DocumentViewer = {
     saveAndPreviewBase64File: function (successHandler, failureHandler, data, type, path, fileName) {
         writeBase64ToFile(fileName, data, path, type).then(
                 function (response) {
-                    viewDocument(successHandler, failureHandler, path + fileName, fileName);
+                    viewDocument(successHandler, failureHandler, path + fileName, fileName, type);
                 }, function (error) {
             failureHandler('Error');
         });
     },
-    previewFileFromUrlOrPath: function (successHandler, failureHandler, url, fileName) {
-        viewDocument(successHandler, failureHandler, url, fileName);
+    previewFileFromUrlOrPath: function (successHandler, failureHandler, url, fileName, type) {
+        viewDocument(successHandler, failureHandler, url, fileName, type);
     }
 };
 
