@@ -65,7 +65,7 @@ public class DocumentHandler extends CordovaPlugin {
      * @param url
      * @return
      */
-    private File downloadFile(String url, CallbackContext callbackContext) {
+    private File downloadFile(String fileName, String url, CallbackContext callbackContext) {
 
         try {
 			// get an instance of a cookie manager since it has access to our
@@ -86,7 +86,12 @@ public class DocumentHandler extends CordovaPlugin {
 
             InputStream reader = conn.getInputStream();
 
-            String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+            String extension = "";
+            if (fileName.isEmpty()) {
+                extension = MimeTypeMap.getFileExtensionFromUrl(url);
+            } else {
+                extension = fileName;
+            }
             if (extension.equals("")) {
                 extension = "pdf";
                 System.out.println("extension (default): " + extension);
@@ -181,7 +186,7 @@ public class DocumentHandler extends CordovaPlugin {
         @Override
         protected File doInBackground(Void... arg0) {
             if (!url.startsWith("file://")) {
-                return downloadFile(url, callbackContext);
+                return downloadFile(this.fileName, url, callbackContext);
             } else {
                 File file = new File(url.replace("file://", ""));
                 return file;
