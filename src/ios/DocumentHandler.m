@@ -13,7 +13,7 @@
         NSDictionary* dict = [command.arguments objectAtIndex:0];
         
         NSString* urlStr = dict[@"url"];
-        NSString* filename = dict[@"fileName"];
+        NSString* filenameArg = dict[@"fileName"];
         NSString* escaped =  [ urlStr stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
         NSURL* url = [NSURL URLWithString:escaped];
 
@@ -24,7 +24,10 @@
           return;
         }
 
-        NSString* fileName = [url lastPathComponent];
+        NSString* fileName = filenameArg;
+        if ([fileName length] == 0) {
+            fileName = [url lastPathComponent];
+        }
         
         NSString* fileExt = [fileName pathExtension];
         if([fileExt length] == 0){
@@ -46,7 +49,7 @@
         });
         
         
-        CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:filename];
+        CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:fileName];
         [weakSelf.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
     });
 }
