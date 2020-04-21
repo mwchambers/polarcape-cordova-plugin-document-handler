@@ -90,8 +90,12 @@ public class DocumentHandler extends CordovaPlugin {
                 extension = "pdf";
                 System.out.println("extension (default): " + extension);
             }
-            File f = File.createTempFile(FILE_PREFIX, "." + extension,
-                    null);
+
+            Context context = cordova.getActivity().getApplicationContext();
+            File directory = context.getExternalFilesDir(null);
+            //System.out.println("directory: " + Uri.fromFile(directory).toString());
+
+            File f = File.createTempFile(FILE_PREFIX, "." + extension, directory);
             // make sure the receiving app can read this file
             f.setReadable(true, false);
             FileOutputStream outStream = new FileOutputStream(f);
