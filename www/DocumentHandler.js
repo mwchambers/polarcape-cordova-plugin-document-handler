@@ -1,7 +1,8 @@
 var viewDocument = function (
         successHandler,
         failureHandler,
-        url, fileName) {
+        url, fileName, type) {
+
     cordova.exec(
             successHandler,
             failureHandler,
