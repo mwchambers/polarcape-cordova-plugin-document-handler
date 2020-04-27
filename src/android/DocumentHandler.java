@@ -86,22 +86,28 @@ public class DocumentHandler extends CordovaPlugin {
 
             InputStream reader = conn.getInputStream();
 
-            String extension = "";
-            if (fileName.isEmpty()) {
-                extension = MimeTypeMap.getFileExtensionFromUrl(url);
-            } else {
-                extension = fileName;
-            }
-            if (extension.equals("")) {
-                extension = "pdf";
-                System.out.println("extension (default): " + extension);
-            }
-
             Context context = cordova.getActivity().getApplicationContext();
             File directory = context.getExternalFilesDir(null);
             //System.out.println("directory: " + Uri.fromFile(directory).toString());
 
-            File f = File.createTempFile(FILE_PREFIX, "." + extension, directory);
+            File f;
+
+            if (fileName.isEmpty()) {
+                //String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+                String extension = getExtensionFromUrl(url);
+                if (extension != null) {
+                    System.out.println("no extension: default to pdf");
+                    extension = "pdf";
+                }
+                System.out.println("creating file with extension: " + extension);
+
+                f = File.createTempFile(FILE_PREFIX, "." + extension, directory);
+            } else { 
+                f = new File(directory, fileName);
+                f.createNewFile();
+                // TODO: Change behaviour if the file already exists?
+            }
+
             // make sure the receiving app can read this file
             f.setReadable(true, false);
             FileOutputStream outStream = new FileOutputStream(f);
@@ -127,15 +133,7 @@ public class DocumentHandler extends CordovaPlugin {
         }
     }
 
-    /**
-     * Returns the MIME Type of the file by looking at file name extension in
-     * the URL.
-     *
-     * @param url
-     * @return
-     */
-    private static String getMimeType(String url) {
-        String mimeType = null;
+    private static String getExtensionFromUrl(String url) { 
 
         /*
          * MimeTypeMap.getFileExtensionFromUrl can return an empty string when there are
@@ -152,16 +150,32 @@ public class DocumentHandler extends CordovaPlugin {
             extension = url.substring(lastDot+1);
         }
 
+        return extension;
+    }
+
+
+    /**
+     * Returns the MIME Type of the file by looking at file name extension in
+     * the URL.
+     *
+     * @param url
+     * @return
+     */
+    private static String getMimeType(String url) {
+        String mimeType = null;
+
+        String extension = getExtensionFromUrl(url);
+
         if (extension != null) {
             MimeTypeMap mime = MimeTypeMap.getSingleton();
             mimeType = mime.getMimeTypeFromExtension(extension);
         }
 
-        System.out.println("Mime Type: " + mimeType);
-
         if (mimeType == null) {
             mimeType = "application/pdf";
             System.out.println("Mime Type (default): " + mimeType);
+        } else { 
+            System.out.println("Mime Type: " + mimeType);
         }
 
         return mimeType;
