@@ -147,7 +147,9 @@ public class DocumentHandler extends CordovaPlugin {
 
         Boolean includeTrace = false;
 
-        if(url.startsWith(("https://dev"))) {
+        int index = url.indexOf("/api/download/");
+
+        if(index != -1 && url.substring(index).startsWith(("/api/download/trace"))) {
             includeTrace = true;
         }
 
