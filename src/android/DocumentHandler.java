@@ -31,6 +31,7 @@ public class DocumentHandler extends CordovaPlugin {
 
     public static final String HANDLE_DOCUMENT_ACTION = "HandleDocumentWithURL";
     public static final int ERROR_NO_HANDLER_FOR_DATA_TYPE = 53;
+    public static final int ERROR_GENERIC_THROWABLE = 3;
     public static final int ERROR_FILE_NOT_FOUND = 2;
     public static final int ERROR_UNKNOWN_ERROR = 1;
 	private static String FILE_PROVIDER_PACKAGE_ID;
@@ -67,7 +68,10 @@ public class DocumentHandler extends CordovaPlugin {
      */
     private File downloadFile(String fileName, String url, CallbackContext callbackContext) {
 
+        File f = null;
+
         try {
+
 			// get an instance of a cookie manager since it has access to our
             // auth cookie
             CookieManager cookieManager = CookieManager.getInstance();
@@ -90,7 +94,7 @@ public class DocumentHandler extends CordovaPlugin {
             File directory = context.getExternalFilesDir(null);
             //System.out.println("directory: " + Uri.fromFile(directory).toString());
 
-            File f;
+
 
             if (fileName.isEmpty()) {
                 //String extension = MimeTypeMap.getFileExtensionFromUrl(url);
@@ -124,13 +128,48 @@ public class DocumentHandler extends CordovaPlugin {
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            callbackContext.error(ERROR_FILE_NOT_FOUND);
+            callbackContext.error(buildErrorObject(ERROR_FILE_NOT_FOUND, e, url, f));
             return null;
         } catch (IOException e) {
             e.printStackTrace();
-            callbackContext.error(ERROR_UNKNOWN_ERROR);
+            callbackContext.error(buildErrorObject(ERROR_UNKNOWN_ERROR, e, url, f));
+            return null;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            callbackContext.error(buildErrorObject(ERROR_GENERIC_THROWABLE, e, url, f));
             return null;
         }
+    }
+
+    private JSONObject buildErrorObject(int error_code, java.lang.Throwable e, String url, File f) {
+
+        JSONObject error = new JSONObject();
+
+        Boolean includeTrace = false;
+
+        if(url.startsWith(("https://dev"))) {
+            includeTrace = true;
+        }
+
+        try {
+            error.put("code", error_code);
+            error.put("error", e.toString());
+
+            if(f != null) {
+                error.put("file", f.getAbsolutePath());
+            }
+
+            if(includeTrace) {
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                e.printStackTrace(pw);
+                error.put("trace", sw.toString());
+            }
+        } catch (org.json.JSONException ex) {
+            System.out.println("Unexpected JSONException: " + ex.toString());
+        }
+
+        return error;
     }
 
     private static String getExtensionFromUrl(String url) { 
