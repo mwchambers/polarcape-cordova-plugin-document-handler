@@ -88,6 +88,9 @@ public class DocumentHandler extends CordovaPlugin {
                 conn.setRequestProperty("Cookie", auth);
             }
 
+            // See: https://www.softax.pl/blog/solved-samsung-a70-problems-after-upgrade-to-android-10-do-i-have-to-wait-for-samsung-to-help-my-app-users/
+            conn.setConnectTimeout(10000); // 10 seconds
+
             InputStream reader = conn.getInputStream();
 
             Context context = cordova.getActivity().getApplicationContext();
