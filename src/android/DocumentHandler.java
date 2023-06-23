@@ -25,7 +25,7 @@ import android.os.AsyncTask;
 import android.webkit.CookieManager;
 import android.webkit.MimeTypeMap;
 
-import android.support.v4.content.FileProvider;
+import androidx.core.content.FileProvider;
 
 public class DocumentHandler extends CordovaPlugin {
 
