@@ -16,7 +16,9 @@
   under the License.
 -->
 
+<!-- https://stackoverflow.com/a/42516202 -->
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <cache-path name="cache" path="/" />
     <files-path name="files" path="/" />
+    <external-files-path name="files" path="/" />
 </paths>
