@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.webkit.CookieManager;
 import android.webkit.MimeTypeMap;
 
@@ -35,6 +36,8 @@ public class DocumentHandler extends CordovaPlugin {
     public static final int ERROR_FILE_NOT_FOUND = 2;
     public static final int ERROR_UNKNOWN_ERROR = 1;
 	private static String FILE_PROVIDER_PACKAGE_ID;
+
+    private static final String HUAWEI_MANUFACTURER = "Huawei";
 
     @Override
     public boolean execute(String action, JSONArray args,
@@ -94,10 +97,35 @@ public class DocumentHandler extends CordovaPlugin {
             InputStream reader = conn.getInputStream();
 
             Context context = cordova.getActivity().getApplicationContext();
-            File directory = context.getExternalFilesDir(null);
+
+            File directory;
+
+            // This is an attempt to work around IllegalArgumentException on Huawei devices.
+            //
+            // References:
+            //   https://stackoverflow.com/questions/39895579/fileprovider-geturiforfile-error-on-huawei-devices
+            //   https://tinyurl.com/mutnnrpe - FileProvider.java;line=740;drc=32d38b7ff8c74fc9fa47c323003eec865f999118
+            //
+            // Note: This may require adjusting the Build.Manufacturer check as we also see some 'Honor' devices reporting
+            // the same problem in Google Console, I do not yet know if their manufacturer is Huawei or Honor.
+
+            if (Build.MANUFACTURER.equalsIgnoreCase(HUAWEI_MANUFACTURER)) {
+
+                File[] directories = context.getExternalFilesDirs(null);
+
+                if (directories.length < 1) {
+                    throw new RuntimeException("No external storage directories found");
+                }
+                directory = directories[0];
+            } else {
+                directory = context.getExternalFilesDir(null);
+            }
+
+            if (directory==null) {
+                throw new Exception("Storage is unavailable");
+            }
+
             //System.out.println("directory: " + Uri.fromFile(directory).toString());
-
-
 
             if (fileName.isEmpty()) {
                 //String extension = MimeTypeMap.getFileExtensionFromUrl(url);
@@ -131,29 +159,31 @@ public class DocumentHandler extends CordovaPlugin {
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            callbackContext.error(buildErrorObject(ERROR_FILE_NOT_FOUND, e, url, f));
+            callbackContext.error(buildErrorObject(ERROR_FILE_NOT_FOUND, e, f, url));
             return null;
         } catch (IOException e) {
             e.printStackTrace();
-            callbackContext.error(buildErrorObject(ERROR_UNKNOWN_ERROR, e, url, f));
+            callbackContext.error(buildErrorObject(ERROR_UNKNOWN_ERROR, e, f, url));
             return null;
         } catch (Throwable e) {
             e.printStackTrace();
-            callbackContext.error(buildErrorObject(ERROR_GENERIC_THROWABLE, e, url, f));
+            callbackContext.error(buildErrorObject(ERROR_GENERIC_THROWABLE, e, f, url));
             return null;
         }
     }
 
-    private JSONObject buildErrorObject(int error_code, java.lang.Throwable e, String url, File f) {
+    private JSONObject buildErrorObject(int error_code, java.lang.Throwable e, File f, String url) {
 
         JSONObject error = new JSONObject();
 
         Boolean includeTrace = false;
 
-        int index = url.indexOf("/api/download/");
+        if (url != null) {
+            int index = url.indexOf("/api/download/");
 
-        if(index != -1 && url.substring(index).startsWith(("/api/download/trace"))) {
-            includeTrace = true;
+            if(index != -1 && url.substring(index).startsWith(("/api/download/trace"))) {
+                includeTrace = true;
+            }
         }
 
         try {
@@ -285,6 +315,12 @@ public class DocumentHandler extends CordovaPlugin {
                 e.printStackTrace();
                 callbackContext.error(ERROR_NO_HANDLER_FOR_DATA_TYPE);
             }
+            /*
+            Let the app crash for now so we get visibility of any problems in Google console.
+            catch (Throwable e) {
+                e.printStackTrace();
+                callbackContext.error(buildErrorObject(ERROR_GENERIC_THROWABLE, e, result, null));
+            }*/
 
         }
 
